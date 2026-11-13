@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pinyin Lyric Sheet 拼音歌词</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@500;700&family=Noto+Sans+TC:wght@500;700&family=Noto+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f5f1ea; --card:#fffdf9; --ink:#2a2420; --muted:#7a6f66; --line:#e6ddd1;
+    --red:#b8322a; --red-soft:#f6e3df; --focus:#ffe9a8;
+    --cn:"Noto Sans SC","Noto Sans TC",system-ui,sans-serif;
+    --lat:"Noto Sans",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--lat);font-size:16px;line-height:1.45}
+  header{padding:18px 24px 6px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  header h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.01em}
+  header h1 span.cn{font-family:var(--cn);color:var(--red);margin-left:6px}
+  header .lang{margin-left:auto}
+  header .lang button{font-size:13px;padding:6px 12px}
+  @media (max-width:700px){header .lang{margin-left:0}}
+  header p{margin:0;color:var(--muted);font-size:14px}
+  main{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(340px,.9fr);gap:18px;padding:12px 24px 40px;align-items:start}
+  @media (max-width:980px){main{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:18px}
+  .card h2{margin:0 0 10px;font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .step{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--red);color:#fff;font-size:12px}
+  label.f{display:block;font-size:13px;color:var(--muted);margin:0 0 4px}
+  input[type=text].title, textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:inherit;background:#fff;color:var(--ink)}
+  input[type=text].title{font-family:var(--cn);font-size:18px;margin-bottom:10px}
+  textarea{font-family:var(--cn);font-size:17px;min-height:140px;resize:vertical;line-height:1.6}
+  textarea:focus, input.title:focus{outline:2px solid var(--red);outline-offset:-1px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  button{font:inherit;font-size:14px;font-weight:600;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink);padding:8px 14px;cursor:pointer}
+  button:hover{border-color:#cdbfae}
+  button.primary{background:var(--red);border-color:var(--red);color:#fff}
+  button.primary:hover{filter:brightness(1.07)}
+  button:disabled{opacity:.5;cursor:default}
+  button.warn{color:var(--red)}
+  .hint{font-size:13px;color:var(--muted)}
+  .kbd{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:#f1ebe2;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px}
+
+  /* editor */
+  .tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+  .tools .sp{flex:1}
+  .progress{font-size:13px;color:var(--muted)}
+  #editor{border:1px dashed var(--line);border-radius:12px;padding:12px 10px;max-height:70vh;overflow:auto;background:#fff}
+  #editor .empty{color:var(--muted);padding:30px;text-align:center}
+  .lline{display:flex;flex-wrap:wrap;align-items:flex-end;gap:2px 2px;padding:4px 0;border-bottom:1px solid #f3eee7}
+  .lline:last-child{border-bottom:0}
+  .lblank{height:14px}
+  .cell{display:flex;flex-direction:column;align-items:center;border-radius:8px;padding:2px 1px 0}
+  .cell.cur{background:var(--focus)}
+  .cell input{width:3.4em;min-width:3.4em;text-align:center;font-family:var(--lat);font-size:15px;font-weight:500;color:var(--red);
+    border:1px solid #e4dbcf;border-radius:6px;padding:3px 2px;background:#fffefb}
+  .cell input:focus{outline:2px solid var(--red);outline-offset:0;background:#fff}
+  .cell input.filled{border-color:#efd8d3;background:#fff8f6}
+  .cell .han{font-family:var(--cn);font-weight:500;font-size:34px;line-height:1.15;cursor:pointer}
+  .punct{font-family:var(--cn);font-size:30px;color:#a49789;align-self:flex-end;padding:0 2px 2px}
+  .space{width:14px}
+
+  /* print panel */
+  .sticky{position:sticky;top:12px}
+  @media (max-width:980px){.sticky{position:static}}
+  .opts{display:grid;grid-template-columns:auto 1fr;gap:9px 12px;align-items:center;font-size:14px;margin-bottom:12px}
+  .opts > span{color:var(--muted)}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff;flex-wrap:wrap}
+  .seg button{border:0;border-radius:0;padding:6px 11px;font-weight:600;background:transparent}
+  .seg button + button{border-left:1px solid var(--line)}
+  .seg button.on{background:var(--red);color:#fff}
+  .stepper{display:inline-flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+  .stepper button{border:0;border-radius:0;width:36px;padding:6px 0;font-size:18px;line-height:1}
+  .stepper b{min-width:40px;text-align:center;font-size:17px}
+  .sizeinfo{font-size:13px;color:var(--muted);margin:-2px 0 12px}
+  .sizeinfo b{color:var(--ink)}
+  .warnbox{background:var(--red-soft);color:#7d201a;border-radius:10px;padding:8px 12px;font-size:13px;margin-bottom:10px}
+  #preview{display:flex;flex-direction:column;align-items:center;gap:14px;background:#e9e2d7;border-radius:12px;padding:16px;max-height:68vh;overflow:auto}
+  #preview .pg{position:relative;width:100%}
+  #preview canvas{display:block;width:100%;height:auto;background:#fff;box-shadow:0 2px 10px rgba(60,40,20,.18);border-radius:2px}
+  #preview .pgl{font-size:12px;color:var(--muted);text-align:center;margin-top:5px}
+  .actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .actions button{flex:1;padding:11px 14px;font-size:15px}
+  #msg{font-size:13px;margin-top:8px;min-height:18px}
+  #msg.err{color:var(--red)}
+  #printArea{display:none}
+  @media print{
+    body{background:#fff}
+    header,main{display:none!important}
+    #printArea{display:block}
+    #printArea img{display:block;width:100%;height:auto;page-break-after:always;break-after:page}
+    #printArea img:last-child{page-break-after:auto;break-after:auto}
+  }
+</style>
+<style id="pageRule">@page{size:A4 portrait;margin:0}</style>
+</head>
+<body>
+<header>
+  <h1><span data-i18n="appName">Pinyin Lyric Sheet</span> <span class="cn">拼音歌词</span></h1>
+  <p data-i18n="tagline">Paste lyrics, add pinyin above each character, print it big 🎤</p>
+  <div class="seg lang" id="langSeg" aria-label="Language"><button data-v="en">English</button><button data-v="id">Bahasa Indonesia</button><button data-v="zh">中文</button></div>
+</header>
+
+<main>
+  <section>
+    <div class="card">
+      <h2><span class="step">1</span> <span data-i18n="s1">Paste the lyrics</span></h2>
+      <input type="text" class="title" id="title" data-i18n-ph="titlePh" placeholder="Song title (optional)">
+      <textarea id="lyrics" data-i18n-ph="lyricsPh"></textarea>
+      <div class="row" style="margin-top:8px">
+        <button id="sampleBtn" data-i18n="sample">Try a sample</button>
+        <button id="tidyBtn" data-i18n="tidy">Tidy up text</button>
+        <span class="hint" data-i18n="keepHint">Edits here keep the pinyin you've already typed.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="step">2</span> <span data-i18n="s2">Type the pinyin</span></h2>
+      <div class="tools">
+        <button id="autoBtn" class="primary" disabled data-i18n="auto">✨ Auto-fill empty boxes</button>
+        <button id="clearBtn" class="warn" data-i18n="clear">Clear all pinyin</button>
+        <span class="sp"></span>
+        <span class="progress" id="progress"></span>
+      </div>
+      <p class="hint" style="margin:0 0 10px" data-i18n-html="typeHint"></p>
+      <div id="editor"></div>
+      <label class="hint" style="display:flex;gap:6px;align-items:center;margin-top:10px">
+        <input type="checkbox" id="jumpChk" checked> <span data-i18n="jump">Jump to the next box after typing a tone number</span>
+      </label>
+    </div>
+  </section>
+
+  <section class="sticky">
+    <div class="card">
+      <h2><span class="step">3</span> <span data-i18n="s3">Print settings &amp; preview</span></h2>
+      <div class="opts">
+        <span data-i18n="pages">Pages</span>
+        <div class="row">
+          <div class="stepper"><button id="pgMinus" aria-label="−">−</button><b id="pgVal">1</b><button id="pgPlus" aria-label="+">+</button></div>
+          <span class="hint" data-i18n="pagesHint">text grows to fill them</span>
+        </div>
+        <span data-i18n="paper">Paper</span>
+        <div class="seg" data-opt="paper"><button data-v="a4">A4</button><button data-v="letter">Letter</button></div>
+        <span data-i18n="layout">Layout</span>
+        <div class="seg" data-opt="orient"><button data-v="portrait" data-i18n="portrait">Portrait</button><button data-v="landscape" data-i18n="landscape">Landscape</button></div>
+        <span data-i18n="margins">Margins</span>
+        <div class="seg" data-opt="margin"><button data-v="6" data-i18n="tiny">Tiny</button><button data-v="10" data-i18n="small">Small</button><button data-v="16" data-i18n="normal">Normal</button></div>
+        <span data-i18n="align">Align</span>
+        <div class="seg" data-opt="align"><button data-v="left" data-i18n="left">Left</button><button data-v="center" data-i18n="centre">Centre</button></div>
+        <span data-i18n="chars">Characters</span>
+        <div class="seg" data-opt="script"><button data-v="orig" data-i18n="asPasted">As pasted</button><button data-v="cn">简体</button><button data-v="tw">繁體</button></div>
+        <span data-i18n="pyColour">Pinyin colour</span>
+        <div class="seg" data-opt="pycolor"><button data-v="#c0261c" data-i18n="red">Red</button><button data-v="#1f4fa8" data-i18n="blue">Blue</button><button data-v="#222222" data-i18n="black">Black</button></div>
+        <span data-i18n="pyLbl">Pinyin</span>
+        <div class="seg" data-opt="showPy"><button data-v="1" data-i18n="show">Show</button><button data-v="0" data-i18n="hide">Hide</button></div>
+        <span data-i18n="titleLbl">Title</span>
+        <div class="seg" data-opt="showTitle"><button data-v="1" data-i18n="show">Show</button><button data-v="0" data-i18n="hide">Hide</button></div>
+      </div>
+      <div class="sizeinfo" id="sizeInfo"></div>
+      <div id="fitWarn"></div>
+      <div id="preview"></div>
+      <div class="actions">
+        <button id="pdfBtn" class="primary" data-i18n="pdf">⬇️ Download PDF</button>
+        <button id="printBtn" data-i18n="print">🖨️ Print</button>
+      </div>
+      <div id="msg"></div>
+    </div>
+  </section>
+</main>
+<div id="printArea"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.29.5/dist/index.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/opencc-js@1.4.2/dist/umd/t2cn.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<script>
+(() => {
+"use strict";
+const $ = s => document.querySelector(s);
+
+/* ---------- UI language ---------- */
+const KBD = k => `<span class="kbd">${k}</span>`;
+const I18N = {
+  en: {
+    appName:"Pinyin Lyric Sheet", tagline:"Paste lyrics, add pinyin above each character, print it big 🎤",
+    s1:"Paste the lyrics", titlePh:"Song title (optional) 歌名",
+    lyricsPh:"Paste the lyrics here. Simplified 简体 or Traditional 繁體 both work.\n\nEach line here becomes a line on the sheet.",
+    sample:"Try a sample", tidy:"Tidy up text", keepHint:"Edits here keep the pinyin you've already typed.",
+    s2:"Type the pinyin", auto:"✨ Auto-fill empty boxes", clear:"Clear all pinyin", clearConfirm:"Tap again to clear",
+    typeHint:`Type <b>ni3</b> → <b style="color:var(--red)">nǐ</b> (the tone number adds the mark and jumps on). Use <b>v</b> for ü. Move with ${KBD("←")} ${KBD("→")} ${KBD("↑")} ${KBD("↓")}, or ${KBD("Space")} / ${KBD("Enter")} for next.`,
+    jump:"Jump to the next box after typing a tone number", editorEmpty:"Paste some lyrics above and the boxes appear here.",
+    progress:(f,n)=>`${f} / ${n} characters done`,
+    s3:"Print settings & preview", pages:"Pages", pagesHint:"text grows to fill them", paper:"Paper", layout:"Layout",
+    portrait:"Portrait", landscape:"Landscape", margins:"Margins", tiny:"Tiny", small:"Small", normal:"Normal",
+    align:"Align", left:"Left", centre:"Centre", chars:"Characters", asPasted:"As pasted", pyColour:"Pinyin colour", pyLbl:"Pinyin",
+    red:"Red", blue:"Blue", black:"Black", titleLbl:"Title", show:"Show", hide:"Hide",
+    previewEmpty:"Preview shows here.", pdf:"⬇️ Download PDF", print:"🖨️ Print",
+    sizeInfo:(mm,p,cap)=>`Character size ≈ <b>${mm} mm</b> tall · ${p} page${p>1?"s":""}${cap?" · max size reached":""}`,
+    overflow:(n,p)=>`That's a lot of lyrics for ${n} page${n>1?"s":""}. Showing the smallest size (${p} pages). Try adding pages.`,
+    pageOf:(i,n)=>`Page ${i} of ${n}`,
+    filled:n=>`Filled ${n} boxes. Double-check the tricky ones (多音字) ✅`, nothingToFill:"Nothing empty to fill.",
+    needLyrics:"Paste some lyrics first 🙂", making:"Making the PDF…", pdfLoading:"PDF tool still loading, try again in a sec.",
+    saved:"Saved ✅ Open it and print.", cancelled:"Download cancelled.", cantSave:"Couldn't save the file here.",
+    downloaded:"Downloaded ✅", pdfErr:"Something went wrong making the PDF.",
+    printBlocked:"Printing is blocked inside this viewer. Download the PDF and print that instead 🖨️",
+    convLoading:"Loading character converter…", convErr:"Couldn't load the converter, showing as pasted.",
+    autoErr:"Auto-fill couldn't load", pyFor:"Pinyin for "
+  },
+  id: {
+    appName:"Lembar Lirik Pinyin", tagline:"Tempel lirik, isi pinyin di atas tiap karakter, lalu cetak besar 🎤",
+    s1:"Tempel liriknya", titlePh:"Judul lagu (opsional) 歌名",
+    lyricsPh:"Tempel lirik di sini. Bisa huruf Sederhana 简体 atau Tradisional 繁體.\n\nSetiap baris di sini jadi satu baris di lembar cetak.",
+    sample:"Coba contoh", tidy:"Rapikan teks", keepHint:"Mengubah lirik di sini tidak menghapus pinyin yang sudah diketik.",
+    s2:"Ketik pinyinnya", auto:"✨ Isi otomatis kotak kosong", clear:"Hapus semua pinyin", clearConfirm:"Klik lagi untuk hapus",
+    typeHint:`Ketik <b>ni3</b> → <b style="color:var(--red)">nǐ</b> (angka nada menambah tanda nada lalu pindah ke kotak berikutnya). Ketik <b>v</b> untuk ü. Pindah dengan ${KBD("←")} ${KBD("→")} ${KBD("↑")} ${KBD("↓")}, atau ${KBD("Spasi")} / ${KBD("Enter")} untuk kotak berikutnya.`,
+    jump:"Pindah ke kotak berikutnya setelah mengetik angka nada", editorEmpty:"Tempel lirik di atas, nanti kotaknya muncul di sini.",
+    progress:(f,n)=>`${f} / ${n} karakter selesai`,
+    s3:"Pengaturan cetak & pratinjau", pages:"Halaman", pagesHint:"tulisan membesar untuk mengisi halaman", paper:"Kertas", layout:"Arah",
+    portrait:"Tegak", landscape:"Mendatar", margins:"Margin", tiny:"Sangat kecil", small:"Kecil", normal:"Normal",
+    align:"Rata", left:"Kiri", centre:"Tengah", chars:"Karakter", asPasted:"Sesuai asli", pyColour:"Warna pinyin", pyLbl:"Pinyin",
+    red:"Merah", blue:"Biru", black:"Hitam", titleLbl:"Judul", show:"Tampil", hide:"Sembunyi",
+    previewEmpty:"Pratinjau muncul di sini.", pdf:"⬇️ Unduh PDF", print:"🖨️ Cetak",
+    sizeInfo:(mm,p,cap)=>`Tinggi karakter ≈ <b>${mm} mm</b> · ${p} halaman${cap?" · sudah ukuran maksimum":""}`,
+    overflow:(n,p)=>`Liriknya terlalu banyak untuk ${n} halaman. Ditampilkan ukuran terkecil (${p} halaman). Coba tambah halaman.`,
+    pageOf:(i,n)=>`Halaman ${i} dari ${n}`,
+    filled:n=>`${n} kotak sudah diisi. Cek lagi yang bacaannya bisa beda (多音字) ✅`, nothingToFill:"Tidak ada kotak kosong.",
+    needLyrics:"Tempel liriknya dulu ya 🙂", making:"Sedang membuat PDF…", pdfLoading:"Alat PDF masih dimuat, coba lagi sebentar.",
+    saved:"Tersimpan ✅ Buka lalu cetak.", cancelled:"Unduhan dibatalkan.", cantSave:"Tidak bisa menyimpan file di sini.",
+    downloaded:"Terunduh ✅", pdfErr:"Ada masalah saat membuat PDF.",
+    printBlocked:"Cetak langsung tidak bisa di sini. Unduh PDF-nya lalu cetak dari situ 🖨️",
+    convLoading:"Memuat pengubah karakter…", convErr:"Pengubah karakter gagal dimuat, ditampilkan sesuai asli.",
+    autoErr:"Isi otomatis gagal dimuat", pyFor:"Pinyin untuk "
+  },
+  zh: {
+    appName:"拼音歌词纸", tagline:"贴上歌词，在每个字上面写拼音，再大字打印 🎤",
+    s1:"贴上歌词", titlePh:"歌名（可不填）",
+    lyricsPh:"把歌词贴在这里。简体、繁體都可以。\n\n这里的每一行，打印出来也是一行。",
+    sample:"看个例子", tidy:"整理文字", keepHint:"在这里改歌词，已经打好的拼音会保留。",
+    s2:"输入拼音", auto:"✨ 自动填空格", clear:"清除全部拼音", clearConfirm:"再按一次确认清除",
+    typeHint:`输入 <b>ni3</b> → <b style="color:var(--red)">nǐ</b>（打声调数字就会加上声调，并跳到下一个字）。用 <b>v</b> 代替 ü。用 ${KBD("←")} ${KBD("→")} ${KBD("↑")} ${KBD("↓")} 移动，或按 ${KBD("空格")} / ${KBD("Enter")} 到下一个字。`,
+    jump:"打完声调数字后自动跳到下一个字", editorEmpty:"在上面贴上歌词，格子就会出现在这里。",
+    progress:(f,n)=>`已完成 ${f} / ${n} 个字`,
+    s3:"打印设置和预览", pages:"页数", pagesHint:"字会放大到填满页面", paper:"纸张", layout:"方向",
+    portrait:"直向", landscape:"横向", margins:"页边距", tiny:"很小", small:"小", normal:"正常",
+    align:"对齐", left:"靠左", centre:"居中", chars:"字体", asPasted:"跟原文一样", pyColour:"拼音颜色", pyLbl:"拼音",
+    red:"红色", blue:"蓝色", black:"黑色", titleLbl:"歌名", show:"显示", hide:"隐藏",
+    previewEmpty:"预览会在这里显示。", pdf:"⬇️ 下载 PDF", print:"🖨️ 打印",
+    sizeInfo:(mm,p,cap)=>`字高约 <b>${mm} 毫米</b> · 共 ${p} 页${cap?" · 已是最大":""}`,
+    overflow:(n,p)=>`歌词太多，${n} 页放不下。现在用最小的字（${p} 页）。可以多加几页。`,
+    pageOf:(i,n)=>`第 ${i} 页，共 ${n} 页`,
+    filled:n=>`已填好 ${n} 个字。请检查多音字 ✅`, nothingToFill:"没有空格需要填。",
+    needLyrics:"请先贴上歌词 🙂", making:"正在制作 PDF…", pdfLoading:"PDF 工具还在加载，请稍等再试。",
+    saved:"已保存 ✅ 打开后就可以打印。", cancelled:"已取消下载。", cantSave:"这里无法保存文件。",
+    downloaded:"已下载 ✅", pdfErr:"制作 PDF 时出错了。",
+    printBlocked:"这里不能直接打印。请先下载 PDF，再用 PDF 打印 🖨️",
+    convLoading:"正在加载简繁转换…", convErr:"简繁转换加载失败，按原文显示。",
+    autoErr:"自动填写加载失败", pyFor:"拼音："
+  }
+};
+let lang = (() => {
+  try { const l = localStorage.getItem("pinyinLyrics.lang"); if (I18N[l]) return l; } catch {}
+  const n = (navigator.language || "").toLowerCase();
+  return n.startsWith("zh") ? "zh" : (n.startsWith("id") || n.startsWith("ms")) ? "id" : "en";
+})();
+const tr = (k, ...a) => t(k, ...a);
+const t = (k, ...a) => { const v = (I18N[lang] && I18N[lang][k] !== undefined) ? I18N[lang][k] : I18N.en[k]; return typeof v === "function" ? v(...a) : v; };
+function applyLang(){
+  document.documentElement.lang = lang === "zh" ? "zh-CN" : lang === "id" ? "id" : "en-GB";
+  document.title = `${t("appName")} 拼音歌词`;
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+  document.querySelectorAll("#langSeg button").forEach(b => b.classList.toggle("on", b.dataset.v === lang));
+}
+
+/* ---------- character classes ---------- */
+const HAN = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\u{20000}-\u{3134F}]/u;
+const CJK_PUNCT = /[\u3000-\u303F\uFF00-\uFFEF\u2014\u2026\u00B7\u2018\u2019\u201C\u201D]/;
+
+/* ---------- state ---------- */
+const store = {
+  get(){ try { return JSON.parse(localStorage.getItem("pinyinLyrics.v1") || "null"); } catch { return null; } },
+  set(v){ try { localStorage.setItem("pinyinLyrics.v1", JSON.stringify(v)); } catch {} }
+};
+const opts = { showPy:"1", pages:1, paper:"a4", orient:"portrait", margin:"10", align:"left", script:"orig", pycolor:"#c0261c", showTitle:"1" };
+let lines = [];       // [{tokens:[{ch, han:bool, py:""}]}]
+let curInput = null;
+
+/* ---------- parsing ---------- */
+function parse(text){
+  const old = lines;
+  const out = text.replace(/\r/g,"").split("\n").map(l => l.replace(/\s+$/,""));
+  // trim leading/trailing blank lines
+  while (out.length && !out[0].trim()) out.shift();
+  while (out.length && !out[out.length-1].trim()) out.pop();
+  lines = out.map((raw, li) => {
+    const tokens = Array.from(raw.trim()).map(ch => ({ ch, han: HAN.test(ch), py: "" }));
+    // keep pinyin already typed (match by line + han index + same character)
+    const prev = old[li];
+    if (prev){
+      const ph = prev.tokens.filter(t => t.han);
+      let k = 0;
+      for (const t of tokens) if (t.han){ if (ph[k] && ph[k].ch === t.ch) t.py = ph[k].py; k++; }
+    }
+    return { tokens };
+  });
+}
+
+/* ---------- tone-number → tone-mark ---------- */
+const MARKS = { a:"āáǎà", e:"ēéěè", i:"īíǐì", o:"ōóǒò", u:"ūúǔù", "ü":"ǖǘǚǜ" };
+const UNMARK = {};
+for (const [b, m] of Object.entries(MARKS)) for (const c of m) UNMARK[c] = b;
+function stripMarks(s){ return Array.from(s).map(c => UNMARK[c] || c).join(""); }
+function numToMark(raw){
+  let s = raw.toLowerCase().replace(/u:/g,"ü").replace(/v/g,"ü");
+  const m = s.match(/^([a-zü]+)([0-5])$/);
+  if (!m) return { text: s, toned:false };
+  let syl = stripMarks(m[1]); const tone = +m[2];
+  if (tone === 0 || tone === 5) return { text: syl, toned:true };
+  let idx = syl.indexOf("a");
+  if (idx < 0) idx = syl.indexOf("e");
+  if (idx < 0 && syl.includes("ou")) idx = syl.indexOf("o");
+  if (idx < 0){ for (let i = syl.length-1; i >= 0; i--) if ("aeiouü".includes(syl[i])){ idx = i; break; } }
+  if (idx < 0) return { text: syl, toned:true };
+  const v = syl[idx];
+  return { text: syl.slice(0,idx) + MARKS[v][tone-1] + syl.slice(idx+1), toned:true };
+}
+
+/* ---------- traditional/simplified ---------- */
+let toCN = null, toTW = null, fullLoading = null;
+function ensureT2CN(){ if (!toCN && window.OpenCC) { try { toCN = OpenCC.Converter({ from:"t", to:"cn" }); } catch {} } return toCN; }
+function loadFull(){
+  if (toTW) return Promise.resolve();
+  if (fullLoading) return fullLoading;
+  fullLoading = new Promise((res, rej) => {
+    const sc = document.createElement("script");
+    sc.src = "https://cdn.jsdelivr.net/npm/opencc-js@1.4.2/dist/umd/full.js";
+    sc.onload = () => { try { toTW = OpenCC.Converter({ from:"cn", to:"tw" }); toCN = OpenCC.Converter({ from:"t", to:"cn" }); res(); } catch(e){ rej(e); } };
+    sc.onerror = () => rej(new Error("load failed"));
+    document.head.appendChild(sc);
+  });
+  return fullLoading;
+}
+// per-line converted characters (same length guard)
+function convertLine(tokens, target){
+  const chars = tokens.map(t => t.ch);
+  const conv = target === "cn" ? toCN : target === "tw" ? toTW : null;
+  if (!conv) return chars;
+  try {
+    const out = Array.from(conv(chars.join("")));
+    return out.length === chars.length ? out : chars;
+  } catch { return chars; }
+}
+function displayChars(line){ return opts.script === "orig" ? line.tokens.map(t => t.ch) : convertLine(line.tokens, opts.script); }
+
+/* ---------- editor ---------- */
+const editor = $("#editor");
+function renderEditor(){
+  editor.innerHTML = "";
+  if (!lines.length){ editor.innerHTML = `<div class="empty">${t("editorEmpty")}</div>`; updateProgress(); return; }
+  const frag = document.createDocumentFragment();
+  lines.forEach((line, li) => {
+    if (!line.tokens.length){ const b = document.createElement("div"); b.className = "lblank"; frag.appendChild(b); return; }
+    const row = document.createElement("div"); row.className = "lline";
+    const disp = displayChars(line);
+    let hi = 0;
+    line.tokens.forEach((t, ti) => {
+      if (t.han){
+        const cell = document.createElement("div"); cell.className = "cell";
+        const inp = document.createElement("input");
+        inp.type = "text"; inp.value = t.py; inp.autocomplete = "off"; inp.spellcheck = false;
+        inp.setAttribute("autocapitalize","off"); inp.setAttribute("aria-label", tr("pyFor") + t.ch);
+        inp.dataset.li = li; inp.dataset.ti = ti; inp.dataset.hi = hi++;
+        sizeInput(inp);
+        const h = document.createElement("div"); h.className = "han"; h.textContent = disp[ti];
+        h.addEventListener("click", () => inp.focus());
+        cell.append(inp, h); row.appendChild(cell);
+      } else if (/\s/.test(t.ch)){
+        const s = document.createElement("span"); s.className = "space"; row.appendChild(s);
+      } else {
+        const s = document.createElement("span"); s.className = "punct"; s.textContent = disp[ti]; row.appendChild(s);
+      }
+    });
+    frag.appendChild(row);
+  });
+  editor.appendChild(frag);
+  updateProgress();
+}
+function sizeInput(inp){
+  inp.style.width = Math.max(3.4, inp.value.length * 0.62 + 1.2) + "em";
+  inp.classList.toggle("filled", !!inp.value.trim());
+}
+function allInputs(){ return Array.from(editor.querySelectorAll(".cell input")); }
+function focusInput(inp, where){
+  if (!inp) return;
+  inp.focus();
+  const n = inp.value.length;
+  if (where === "start") inp.setSelectionRange(0,0);
+  else if (where === "all") inp.select();
+  else inp.setSelectionRange(n,n);
+  inp.scrollIntoView({ block:"nearest", inline:"nearest" });
+}
+function move(inp, dir, where){
+  const all = allInputs(); const i = all.indexOf(inp);
+  focusInput(all[i + dir], where);
+}
+function moveLine(inp, dir){
+  const li = +inp.dataset.li, hi = +inp.dataset.hi;
+  for (let l = li + dir; l >= 0 && l < lines.length; l += dir){
+    const ins = editor.querySelectorAll(`.cell input[data-li="${l}"]`);
+    if (ins.length){ focusInput(ins[Math.min(hi, ins.length-1)], "end"); return; }
+  }
+}
+editor.addEventListener("focusin", e => {
+  if (e.target.tagName !== "INPUT") return;
+  editor.querySelectorAll(".cell.cur").forEach(c => c.classList.remove("cur"));
+  e.target.parentElement.classList.add("cur"); curInput = e.target;
+});
+editor.addEventListener("input", e => {
+  const inp = e.target; if (inp.tagName !== "INPUT") return;
+  let v = inp.value.replace(/\s+/g, "");
+  const r = numToMark(v);
+  if (r.toned || /[vV]|u:/.test(v)) v = r.text;
+  if (inp.value !== v){ inp.value = v; inp.setSelectionRange(v.length, v.length); }
+  lines[+inp.dataset.li].tokens[+inp.dataset.ti].py = v;
+  sizeInput(inp); updateProgress(); saveSoon(); previewSoon();
+  if (r.toned && $("#jumpChk").checked) move(inp, 1, "end");
+});
+editor.addEventListener("keydown", e => {
+  const inp = e.target; if (inp.tagName !== "INPUT" || e.isComposing) return;
+  const atStart = inp.selectionStart === 0 && inp.selectionEnd === 0;
+  const atEnd = inp.selectionStart === inp.value.length;
+  switch (e.key){
+    case "ArrowRight": if (atEnd){ e.preventDefault(); move(inp, 1, "end"); } break;
+    case "ArrowLeft":  if (atStart || !inp.value){ e.preventDefault(); move(inp, -1, "end"); } break;
+    case "ArrowDown":  e.preventDefault(); moveLine(inp, 1); break;
+    case "ArrowUp":    e.preventDefault(); moveLine(inp, -1); break;
+    case " ": case "Enter": e.preventDefault(); move(inp, e.shiftKey ? -1 : 1, "end"); break;
+    case "Backspace": if (!inp.value){ e.preventDefault(); move(inp, -1, "end"); } break;
+  }
+});
+function updateProgress(){
+  let n = 0, f = 0;
+  for (const l of lines) for (const t of l.tokens) if (t.han){ n++; if (t.py.trim()) f++; }
+  $("#progress").textContent = n ? t("progress", f, n) : "";
+}
+
+/* ---------- auto-fill (optional helper) ---------- */
+function autoFill(){
+  if (!window.pinyinPro) return;
+  ensureT2CN();
+  let filled = 0;
+  for (const line of lines){
+    if (!line.tokens.some(t => t.han && !t.py)) continue;
+    // convert to simplified first: pinyin-pro reads context (多音字) better that way
+    let chars = line.tokens.map(t => t.ch);
+    if (toCN){ try { const c = Array.from(toCN(chars.join(""))); if (c.length === chars.length) chars = c; } catch {} }
+    let res = [];
+    try { res = pinyinPro.pinyin(chars.join(""), { type:"all" }); } catch {}
+    // walk both lists, matching by position
+    const zh = res.filter(r => r.isZh);
+    let k = 0;
+    line.tokens.forEach((t, i) => {
+      if (!t.han) return;
+      const r = zh[k++];
+      if (!t.py && r && r.pinyin){ t.py = r.pinyin; filled++; }
+    });
+  }
+  renderEditor(); save(); previewSoon();
+  msg(filled ? t("filled", filled) : t("nothingToFill"));
+}
+
+/* ---------- print layout engine (units: CSS px at 96dpi) ---------- */
+const PAPER = { a4:[210,297], letter:[215.9,279.4] };
+const MM = 96/25.4;
+const HAN_FONT = (s, w=500) => `${w} ${s}px "Noto Sans SC","Noto Sans TC",sans-serif`;
+const PY_FONT = p => `600 ${p}px "Noto Sans",sans-serif`;
+const mctx = document.createElement("canvas").getContext("2d");
+function measure(font, text){ mctx.font = font; return mctx.measureText(text).width; }
+
+function pageDims(){
+  let [w,h] = PAPER[opts.paper];
+  if (opts.orient === "landscape") [w,h] = [h,w];
+  return { wmm:w, hmm:h, W:w*MM, H:h*MM, M:(+opts.margin)*MM };
+}
+
+function buildRows(s, cw){
+  const p = s * 0.40;
+  const gapX = s * 0.2;
+  const showPy = opts.showPy !== "0";
+  const pyH = showPy ? p * 1.35 : s * 0.1, hanH = s * 1.2;
+  const rowCore = pyH + hanH;
+  const rows = [];
+  const title = $("#title").value.trim();
+  if (opts.showTitle === "1" && title){
+    const ts = s * 0.85;
+    rows.push({ type:"title", text: convertTitle(title), size: ts, core: ts * 1.35, gap: s * 0.45 });
+  }
+  const hanF = HAN_FONT(s), pyF = PY_FONT(p);
+  for (const line of lines){
+    if (!line.tokens.length){ rows.push({ type:"gap", core:0, gap: s * 0.55 }); continue; }
+    const disp = displayChars(line);
+    // build items with widths
+    const items = line.tokens.map((t, i) => {
+      if (t.han){
+        const pw = (showPy && t.py) ? measure(pyF, t.py) : 0;
+        return { kind:"han", ch: disp[i], py: t.py, w: Math.max(s, pw) + gapX };
+      }
+      if (/\s/.test(t.ch)) return { kind:"space", w: s * 0.45 };
+      if (CJK_PUNCT.test(t.ch)) return { kind:"punct", ch: disp[i], w: s * 0.72 };
+      return { kind:"other", ch: disp[i], w: measure(hanF, t.ch) + s * 0.04 };
+    });
+    // wrap
+    let cur = [], x = 0;
+    const flush = (last) => { if (cur.length){ rows.push({ type:"row", items:cur, width:x, core:rowCore, gap: last ? s*0.28 : s*0.08, s, p, pyH }); } cur = []; x = 0; };
+    for (const it of items){
+      if (it.kind === "space" && !cur.length) continue;
+      // punctuation never starts a row: carry the previous character down with it
+      if (x + it.w > cw && it.kind === "punct" && cur.length > 1){
+        const carry = cur.pop(); x -= carry.w;
+        while (cur.length && cur[cur.length-1].kind === "space") x -= cur.pop().w;
+        flush(false); carry.x = 0; cur.push(carry); x = carry.w;
+      }
+      else if (x + it.w > cw && cur.length && it.kind !== "punct"){
+        // prefer breaking after a space/punctuation in the second half of the row
+        let br = -1;
+        for (let j = cur.length - 1; j > cur.length / 2; j--) if (cur[j].kind === "space" || cur[j].kind === "punct"){ br = j; break; }
+        if (br > 0 && it.kind !== "space"){
+          const carry = cur.splice(br + 1);
+          x = cur.reduce((a, c) => a + c.w, 0);
+          while (cur.length && cur[cur.length-1].kind === "space") x -= cur.pop().w;
+          flush(false);
+          for (const c of carry){ c.x = x; cur.push(c); x += c.w; }
+        } else {
+          while (cur.length && cur[cur.length-1].kind === "space") x -= cur.pop().w;
+          flush(false);
+        }
+        if (it.kind === "space") continue;
+      }
+      it.x = x; cur.push(it); x += it.w;
+    }
+    // trim trailing space width
+    while (cur.length && cur[cur.length-1].kind === "space"){ x -= cur.pop().w; }
+    flush(true);
+  }
+  return rows;
+}
+function convertTitle(t){
+  if (opts.script === "orig") return t;
+  const conv = opts.script === "cn" ? toCN : toTW;
+  try { return conv ? conv(t) : t; } catch { return t; }
+}
+function paginate(rows, ch){
+  const pages = [[]]; let y = 0;
+  for (const r of rows){
+    let pg = pages[pages.length-1];
+    if (r.type === "gap"){ if (pg.length) y += r.gap; continue; }
+    if (y + r.core > ch + 0.01 && pg.length){ pages.push([]); pg = pages[pages.length-1]; y = 0; }
+    pg.push({ row:r, y }); y += r.core + r.gap;
+  }
+  return pages;
+}
+function layoutAt(s){
+  const d = pageDims(); const cw = d.W - 2*d.M, ch = d.H - 2*d.M;
+  return { s, d, cw, ch, pages: paginate(buildRows(s, cw), ch) };
+}
+function fit(){
+  const d = pageDims(); const cw = d.W - 2*d.M;
+  let lo = 8, hi = Math.min(cw / 3.2, 170);
+  if (layoutAt(hi).pages.length <= opts.pages) return { ...layoutAt(hi), capped:true };
+  if (layoutAt(lo).pages.length > opts.pages) return { ...layoutAt(lo), overflow:true };
+  for (let i = 0; i < 22; i++){
+    const mid = (lo + hi) / 2;
+    if (layoutAt(mid).pages.length <= opts.pages) lo = mid; else hi = mid;
+  }
+  return layoutAt(lo);
+}
+
+function drawPage(ctx, L, pageIdx, scale){
+  const { d } = L;
+  ctx.save();
+  ctx.setTransform(scale,0,0,scale,0,0);
+  ctx.fillStyle = "#fff"; ctx.fillRect(0,0,d.W,d.H);
+  const cw = L.cw;
+  for (const { row:r, y:ry } of L.pages[pageIdx]){
+    const y0 = d.M + ry;
+    if (r.type === "title"){
+      ctx.fillStyle = "#1b1714"; ctx.font = HAN_FONT(r.size, 700);
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(r.text, d.W/2, y0 + r.core/2, cw);
+      continue;
+    }
+    const off = d.M + (opts.align === "center" ? (cw - r.width)/2 : 0);
+    const pyMid = y0 + r.pyH * 0.55;
+    const hanMid = y0 + r.pyH + r.s * 0.6;
+    for (const it of r.items){
+      const x = off + it.x;
+      if (it.kind === "han"){
+        const cx = x + (it.w - r.s*0.2)/2;
+        if (it.py && opts.showPy !== "0"){
+          ctx.fillStyle = opts.pycolor; ctx.font = PY_FONT(r.p);
+          ctx.textAlign = "center"; ctx.textBaseline = "middle";
+          ctx.fillText(it.py, cx, pyMid);
+        }
+        ctx.fillStyle = "#111"; ctx.font = HAN_FONT(r.s);
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(it.ch, cx, hanMid);
+      } else if (it.kind === "punct" || it.kind === "other"){
+        ctx.fillStyle = it.kind === "punct" ? "#777" : "#111";
+        ctx.font = HAN_FONT(r.s); ctx.textAlign = "left"; ctx.textBaseline = "middle";
+        ctx.fillText(it.ch, x, hanMid);
+      }
+    }
+  }
+  ctx.restore();
+}
+function renderPageCanvas(L, i, scale){
+  const c = document.createElement("canvas");
+  c.width = Math.round(L.d.W * scale); c.height = Math.round(L.d.H * scale);
+  drawPage(c.getContext("2d"), L, i, scale);
+  return c;
+}
+
+/* ---------- fonts ---------- */
+async function ensureFonts(){
+  if (!document.fonts || !document.fonts.load) return;
+  let han = $("#title").value, py = "āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜü";
+  for (const l of lines){ for (const t of l.tokens){ han += t.ch; py += t.py; } han += displayChars(l).join(""); }
+  const sample = han.slice(0, 4000) || "中文";
+  try {
+    await Promise.all([
+      document.fonts.load(HAN_FONT(40), sample), document.fonts.load(HAN_FONT(40,700), sample),
+      document.fonts.load(`500 40px "Noto Sans TC"`, sample),
+      document.fonts.load(PY_FONT(20), py),
+    ]);
+  } catch {}
+}
+
+/* ---------- preview ---------- */
+let lastLayout = null, previewTimer = null, previewSeq = 0;
+function previewSoon(){ clearTimeout(previewTimer); previewTimer = setTimeout(renderPreview, 250); }
+async function renderPreview(){
+  const seq = ++previewSeq;
+  const pv = $("#preview");
+  if (!lines.length){ pv.innerHTML = `<div class="hint" style="padding:40px 0">${t("previewEmpty")}</div>`; $("#sizeInfo").textContent = ""; $("#fitWarn").innerHTML = ""; lastLayout = null; return; }
+  await ensureFonts();
+  if (seq !== previewSeq) return;
+  const L = fit(); lastLayout = L;
+  const mm = (L.s / MM).toFixed(1);
+  $("#sizeInfo").innerHTML = t("sizeInfo", mm, L.pages.length, L.capped);
+  $("#fitWarn").innerHTML = L.overflow ? `<div class="warnbox">${t("overflow", opts.pages, L.pages.length)}</div>` : "";
+  pv.innerHTML = "";
+  const scale = Math.min(2, (window.devicePixelRatio || 1) * 0.75);
+  L.pages.forEach((_, i) => {
+    const wrap = document.createElement("div"); wrap.className = "pg";
+    wrap.appendChild(renderPageCanvas(L, i, scale));
+    const lab = document.createElement("div"); lab.className = "pgl"; lab.textContent = t("pageOf", i+1, L.pages.length);
+    wrap.appendChild(lab); pv.appendChild(wrap);
+  });
+}
+
+/* ---------- PDF + print ---------- */
+function msg(t, err){ const m = $("#msg"); m.textContent = t || ""; m.className = err ? "err" : ""; }
+async function buildPdfBlob(){
+  if (!window.jspdf) throw new Error(t("pdfLoading"));
+  await ensureFonts();
+  const L = fit(); const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: opts.orient, unit:"mm", format: opts.paper === "a4" ? "a4" : "letter", compress:true });
+  L.pages.forEach((_, i) => {
+    if (i) doc.addPage();
+    const c = renderPageCanvas(L, i, 3.125); // ≈300 dpi
+    doc.addImage(c.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, L.d.wmm, L.d.hmm, undefined, "FAST");
+  });
+  return { blob: doc.output("blob"), doc };
+}
+function fileName(){
+  const t = ($("#title").value.trim() || "lyrics").replace(/[\\/:*?"<>|]+/g, " ").slice(0, 60);
+  return `${t} - pinyin.pdf`;
+}
+$("#pdfBtn").addEventListener("click", async () => {
+  if (!lines.length) return msg(t("needLyrics"), true);
+  const btn = $("#pdfBtn"); btn.disabled = true; msg(t("making"));
+  try {
+    const { blob, doc } = await buildPdfBlob();
+    let dl = null;
+    if (window.claude && typeof window.claude.use === "function"){ try { dl = await window.claude.use("downloads"); } catch {} }
+    if (dl){
+      try { await dl.save({ filename: fileName(), data: blob }); msg(t("saved")); }
+      catch (e){ msg(e && e.code === "declined" ? t("cancelled") : t("cantSave"), e && e.code !== "declined"); }
+    } else {
+      doc.save(fileName()); msg(t("downloaded"));
+    }
+  } catch (e){ msg(e.message || t("pdfErr"), true); }
+  finally { btn.disabled = false; }
+});
+$("#printBtn").addEventListener("click", async () => {
+  if (!lines.length) return msg(t("needLyrics"), true);
+  let framed = true; try { framed = window.self !== window.top; } catch {}
+  if (framed){ msg(t("printBlocked")); return; }
+  await ensureFonts();
+  const L = fit(); const pa = $("#printArea"); pa.innerHTML = "";
+  $("#pageRule").textContent = `@page{size:${opts.paper === "a4" ? "A4" : "letter"} ${opts.orient};margin:0}`;
+  L.pages.forEach((_, i) => { const img = new Image(); img.src = renderPageCanvas(L, i, 3.125).toDataURL("image/png"); pa.appendChild(img); });
+  setTimeout(() => window.print(), 200);
+});
+
+/* ---------- option controls ---------- */
+function syncSegs(){
+  document.querySelectorAll(".seg[data-opt]").forEach(seg => {
+    const k = seg.dataset.opt;
+    seg.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === String(opts[k])));
+  });
+  $("#pgVal").textContent = opts.pages;
+}
+document.querySelectorAll(".seg[data-opt]").forEach(seg => seg.addEventListener("click", async e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const k = seg.dataset.opt; opts[k] = b.dataset.v; syncSegs(); save();
+  if (k === "script"){
+    if (opts.script === "tw" || (opts.script === "cn" && !ensureT2CN())){
+      msg(t("convLoading"));
+      try { await loadFull(); msg(""); } catch { msg(t("convErr"), true); }
+    }
+    renderEditor();
+  }
+  previewSoon();
+}));
+$("#pgMinus").addEventListener("click", () => { opts.pages = Math.max(1, opts.pages - 1); syncSegs(); save(); previewSoon(); });
+$("#pgPlus").addEventListener("click", () => { opts.pages = Math.min(20, opts.pages + 1); syncSegs(); save(); previewSoon(); });
+
+/* ---------- inputs ---------- */
+let parseTimer = null;
+$("#lyrics").addEventListener("input", () => {
+  clearTimeout(parseTimer);
+  parseTimer = setTimeout(() => { parse($("#lyrics").value); renderEditor(); save(); previewSoon(); }, 300);
+});
+$("#title").addEventListener("input", () => { save(); previewSoon(); });
+$("#tidyBtn").addEventListener("click", () => {
+  const t = $("#lyrics").value.replace(/\r/g,"").split("\n").map(l => l.replace(/[ \t\u3000]+/g," ").trim()).join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  $("#lyrics").value = t; parse(t); renderEditor(); save(); previewSoon();
+});
+$("#sampleBtn").addEventListener("click", () => {
+  $("#title").value = "静夜思";
+  $("#lyrics").value = "床前明月光，\n疑是地上霜。\n\n举头望明月，\n低头思故乡。";
+  parse($("#lyrics").value); renderEditor(); save(); previewSoon();
+  const first = allInputs()[0]; if (first) focusInput(first);
+});
+$("#autoBtn").addEventListener("click", autoFill);
+let clearArmed = null;
+$("#clearBtn").addEventListener("click", () => {
+  const b = $("#clearBtn");
+  if (!clearArmed){ b.textContent = t("clearConfirm"); clearArmed = setTimeout(() => { b.textContent = t("clear"); clearArmed = null; }, 3000); return; }
+  clearTimeout(clearArmed); clearArmed = null; b.textContent = t("clear");
+  for (const l of lines) for (const t of l.tokens) t.py = "";
+  renderEditor(); save(); previewSoon();
+});
+
+/* ---------- save / restore ---------- */
+let saveTimer = null;
+function saveSoon(){ clearTimeout(saveTimer); saveTimer = setTimeout(save, 400); }
+function save(){ store.set({ title: $("#title").value, text: $("#lyrics").value, lines, opts }); }
+function restore(){
+  const s = store.get(); if (!s) return;
+  $("#title").value = s.title || ""; $("#lyrics").value = s.text || "";
+  if (s.opts) Object.assign(opts, s.opts);
+  if (s.opts && s.opts.script !== "orig") opts.script = "orig"; // converter loads on demand
+  lines = Array.isArray(s.lines) ? s.lines : [];
+  parse($("#lyrics").value);
+}
+
+document.querySelectorAll("#langSeg button").forEach(b => b.addEventListener("click", () => {
+  lang = b.dataset.v; try { localStorage.setItem("pinyinLyrics.lang", lang); } catch {}
+  applyLang(); renderEditor(); renderPreview(); msg("");
+}));
+applyLang(); restore(); syncSegs(); renderEditor(); previewSoon();
+window.addEventListener("load", () => {
+  if (window.pinyinPro) $("#autoBtn").disabled = false;
+  else { $("#autoBtn").title = t("autoErr"); }
+  ensureT2CN(); previewSoon();
+});
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(previewSoon);
+})();
+</script>
+</body>
+</html>
